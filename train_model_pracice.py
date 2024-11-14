@@ -1,7 +1,15 @@
-"""Train and Set up"""
-
-
 from huggingface_hub import notebook_login
+from datasets import load_dataset
+from transformers import (AutoTokenizer, 
+                          DataCollatorForSeq2Seq, 
+                          AutoModelForSeq2SeqLM, 
+                          Seq2SeqTrainingArguments, 
+                          Seq2SeqTrainer)
+import evaluate
+import numpy as np
+
+
+"""Train and Set up"""
 
 notebook_login()
 
@@ -32,16 +40,11 @@ def preprocess_function(examples):
 
 tokenized_books = books.map(preprocess_function, batched=True)
 
-from transformers import DataCollatorForSeq2Seq
 
 data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint)
 
-import evaluate
 
 metric = evaluate.load("sacrebleu")
-
-
-import numpy as np
 
 
 def postprocess_text(preds, labels):
@@ -70,8 +73,6 @@ def compute_metrics(eval_preds):
     result = {k: round(v, 4) for k, v in result.items()}
     return result
 
-
-from transformers import AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, Seq2SeqTrainer
 
 model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint)
 
