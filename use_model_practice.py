@@ -3,7 +3,7 @@ from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
 """Import and Translation"""
 
-CUR_MODEL_VERSION = 1
+CUR_MODEL_VERSION = 3
 CUR_MODEL_NAME = ""
 
 with open('model_names.csv', 'r') as f:
@@ -20,18 +20,27 @@ if not CUR_MODEL_NAME:
 text_en_ru = "translate English to Russian: Legumes share resources with nitrogen-fixing bacteria."
 text_ru_en = "translate Russian to English: Бобовые растения делят ресурсы с азотфиксирующими бактериями."
 
+simple_text = "translate English to Russian: What a wonderful day!"
+simple_text = "translate Russian to English: Какой чудесный день!"
+
+repo_name = "Goshective/opus_books_model_1"
+
 # Change `xx` to the language of the input and `yy` to the language of the desired output.
 # Examples: "en" for English, "fr" for French, "de" for German, "es" for Spanish, "zh" for Chinese, etc; translation_en_to_fr translates English to French
 # You can view all the lists of languages here - https://huggingface.co/languages
-translator = pipeline("translation_ru_to_en", model=CUR_MODEL_NAME)
-translator(text_ru_en)
+
+"""AUTO"""
+
+translator = pipeline("translation_ru_to_en", model=repo_name, device='cuda')
+print(translator(simple_text, max_length=400)[0]['translation_text'])
 
 
-tokenizer = AutoTokenizer.from_pretrained(CUR_MODEL_NAME)
-inputs = tokenizer(text_ru_en, return_tensors="pt").input_ids
+"""SETTING UP"""
 
+tokenizer = AutoTokenizer.from_pretrained(repo_name)
+inputs = tokenizer(simple_text, return_tensors="pt").input_ids
 
-model = AutoModelForSeq2SeqLM.from_pretrained(CUR_MODEL_NAME)
+model = AutoModelForSeq2SeqLM.from_pretrained(repo_name)
 outputs = model.generate(inputs, max_new_tokens=40, do_sample=True, top_k=30, top_p=0.95)
 
-tokenizer.decode(outputs[0], skip_special_tokens=True)
+print(tokenizer.decode(outputs[0], skip_special_tokens=True))
