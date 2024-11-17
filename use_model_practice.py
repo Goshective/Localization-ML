@@ -23,7 +23,6 @@ text_ru_en = "translate Russian to English: Бобовые растения де
 simple_text = "translate English to Russian: What a wonderful day!"
 simple_text = "translate Russian to English: Какой чудесный день!"
 
-repo_name = "Goshective/opus_books_model_1"
 
 # Change `xx` to the language of the input and `yy` to the language of the desired output.
 # Examples: "en" for English, "fr" for French, "de" for German, "es" for Spanish, "zh" for Chinese, etc; translation_en_to_fr translates English to French
@@ -31,16 +30,16 @@ repo_name = "Goshective/opus_books_model_1"
 
 """AUTO"""
 
-translator = pipeline("translation_ru_to_en", model=repo_name, device='cuda')
+translator = pipeline("translation_ru_to_en", model=CUR_MODEL_NAME, device='cuda')
 print(translator(simple_text, max_length=400)[0]['translation_text'])
 
 
 """SETTING UP"""
 
-tokenizer = AutoTokenizer.from_pretrained(repo_name)
+tokenizer = AutoTokenizer.from_pretrained(CUR_MODEL_NAME)
 inputs = tokenizer(simple_text, return_tensors="pt").input_ids
 
-model = AutoModelForSeq2SeqLM.from_pretrained(repo_name)
+model = AutoModelForSeq2SeqLM.from_pretrained(CUR_MODEL_NAME)
 outputs = model.generate(inputs, max_new_tokens=40, do_sample=True, top_k=30, top_p=0.95)
 
 print(tokenizer.decode(outputs[0], skip_special_tokens=True))
