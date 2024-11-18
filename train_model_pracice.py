@@ -1,4 +1,4 @@
-from huggingface_hub import notebook_login
+from huggingface_hub import notebook_login, login
 from datasets import load_dataset
 from transformers import (AutoTokenizer, 
                           DataCollatorForSeq2Seq, 
@@ -11,17 +11,27 @@ import numpy as np
 
 """Train and Set up"""
 
-notebook_login()
-
-from datasets import load_dataset
-
-books = load_dataset("opus_books", "en-ru")
-books = books["train"].train_test_split(test_size=0.2)
-
-print(books["train"][0])
+login()
 
 
-from transformers import AutoTokenizer
+# books = load_dataset("opus_books", "en-ru")
+
+dataset = load_dataset("issai/kazparc")
+dataset.column_names
+
+
+def change_id(example): # ID tokens for precise training
+    id_files = {"MM": '1', "GN": '2', "ES": '3', "LD": '4', "FI": '5'}
+    prefix = example['id'][:2]
+    example['id'] = int(id_files[prefix] + example['id'][2:-2])
+    return example
+
+# dataset = dataset.map(change_id)
+
+dataset = dataset["train"].train_test_split(test_size=0.2)
+
+print(dataset["train"][0])
+
 
 checkpoint = "google-t5/t5-small"
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
@@ -30,15 +40,20 @@ source_lang = "ru"
 target_lang = "en"
 prefix = "translate Russian to English: "
 
+def preprocess_function_kazparc(examples):
+    inputs = [prefix + example for example in examples[source_lang]]
+    targets = [example for example in examples[target_lang]]
+    model_inputs = tokenizer(inputs, text_target=targets, max_length=128, truncation=True)
+    return model_inputs
 
-def preprocess_function(examples):
+def preprocess_function_opus(examples):
     inputs = [prefix + example[source_lang] for example in examples["translation"]]
     targets = [example[target_lang] for example in examples["translation"]]
     model_inputs = tokenizer(inputs, text_target=targets, max_length=128, truncation=True)
     return model_inputs
 
 
-tokenized_books = books.map(preprocess_function, batched=True)
+tokenized_books = dataset.map(preprocess_function_kazparc, batched=True)
 
 
 data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint)
@@ -103,4 +118,4 @@ trainer = Seq2SeqTrainer(
 
 trainer.train()
 
-trainer.push_to_hub("opus_books_model_1") # original - "my_awesome_opus_books_model"
+trainer.push_to_hub("opus_books_model_1")
