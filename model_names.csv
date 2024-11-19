@@ -1,5 +1,5 @@
-id;model_repo
-1;Goshective/my_awesome_opus_books_model
-2;Goshective/opus_books_model_1
-3;Goshective/opus_books_model_french
-4;Goshective/opus_books_model_english
+id;model_repo;mode
+1;Goshective/my_awesome_opus_books_model;en-ru
+2;Goshective/kazparc_ru_en_model_1;ru-en
+3;Goshective/opus_books_model_french;en-fr
+4;Goshective/opus_books_model_english;en-ru
